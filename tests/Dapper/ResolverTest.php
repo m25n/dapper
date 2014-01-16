@@ -18,6 +18,7 @@ class ResolverTest
 
     protected function setUp()
     {
+        ini_set('max_execution_time', 0);
         $this->resolver = new Resolver();
     }
 
@@ -65,5 +66,22 @@ class ResolverTest
                 $this->assertGreaterThan($childIndex, $parentIndex, "$node should come after $child");
             }
         }
+    }
+
+    public function testCircular()
+    {
+        $deps = array(
+            'a' => array('b'),
+            'b' => array('a'),
+        );
+
+        foreach($deps as $parent => $children) {
+            $this->resolver->addRelationship($parent, $children);
+        }
+
+        ini_set('max_execution_time', 1);
+        $this->resolver->resolve(array('a','b'));
+
+        $this->assertTrue(true); // we're just making sure it doesn't hang
     }
 }
